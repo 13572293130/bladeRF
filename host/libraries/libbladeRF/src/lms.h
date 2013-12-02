@@ -27,10 +27,6 @@
 
 #include <libbladeRF.h>
 
-#define kHz(x) (x*1000)             /**< Convenience for kHz */
-#define MHz(x) (x*1000000)          /**< Convenience for MHz */
-#define GHz(x) (x*1000000000)       /**< Convenience for GHz */
-
 /**
  * Information about the frequency calculation for the LMS6002D PLL
  * Calculation taken from the LMS6002D Programming and Calibration Guide
@@ -100,13 +96,13 @@ typedef enum {
  * LMS6002D Transceiver configuration
  */
 struct lms_xcvr_config {
-    uint32_t tx_freq_hz;                   /**< Transmit frequency in Hz */
-    uint32_t rx_freq_hz;                   /**< Receive frequency in Hz */
+    uint32_t tx_freq_hz;                /**< Transmit frequency in Hz */
+    uint32_t rx_freq_hz;                /**< Receive frequency in Hz */
     bladerf_loopback loopback_mode;     /**< Loopback Mode */
-    lms_lna_t lna;                         /**< LNA Selection */
-    lms_pa_t pa;                           /**< PA Selection */
-    lms_bw_t tx_bw;                        /**< Transmit Bandwidth */
-    lms_bw_t rx_bw;                        /**< Receive Bandwidth */
+    lms_lna_t lna;                      /**< LNA Selection */
+    lms_pa_t pa;                        /**< PA Selection */
+    lms_bw_t tx_bw;                     /**< Transmit Bandwidth */
+    lms_bw_t rx_bw;                     /**< Receive Bandwidth */
 };
 
 /**
@@ -137,8 +133,10 @@ unsigned int lms_bw2uint(lms_bw_t bw);
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to change
  * @param[in]   bw      Low-pass bandwidth selection
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_lpf_enable(struct bladerf *dev, bladerf_module mod, lms_bw_t bw);
+int lms_lpf_enable(struct bladerf *dev, bladerf_module mod, lms_bw_t bw);
 
 /**
  * Set the LPF mode
@@ -146,9 +144,11 @@ void lms_lpf_enable(struct bladerf *dev, bladerf_module mod, lms_bw_t bw);
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to change
  * @param[in]   mode    Mode to set to
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_lpf_set_mode(struct bladerf *dev, bladerf_module mod,
-                      bladerf_lpf_mode mode);
+int lms_lpf_set_mode(struct bladerf *dev, bladerf_module mod,
+                     bladerf_lpf_mode mode);
 
 /**
  * Get the LPF mode
@@ -156,20 +156,23 @@ void lms_lpf_set_mode(struct bladerf *dev, bladerf_module mod,
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to change
  * @param[out]  mode    Current LPF mode
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_lpf_get_mode(struct bladerf *dev, bladerf_module mod,
-                      bladerf_lpf_mode *mode);
+int lms_lpf_get_mode(struct bladerf *dev, bladerf_module mod,
+                     bladerf_lpf_mode *mode);
 
 /**
  * Get the bandwidth for the selected module
- * TODO: Should this be returned as a pointer passed in?
  *
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to read
+ * @param[out]  bw      Current bandwidth
  *
- * @return the current bandwidth of the module
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-lms_bw_t lms_get_bandwidth(struct bladerf *dev, bladerf_module mod);
+int lms_get_bandwidth(struct bladerf *dev, bladerf_module mod,
+                      lms_bw_t *bw);
 
 /**
  * Enable dithering on PLL in the module to help reduce any fractional spurs
@@ -177,24 +180,23 @@ lms_bw_t lms_get_bandwidth(struct bladerf *dev, bladerf_module mod);
  *
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to change
- * @param[in]   nbits   Number of bits to dither (1 to 8)
- */
-void lms_dither_enable(struct bladerf *dev, bladerf_module mod, uint8_t nbits);
-
-/**
- * Disable dithering on PLL in the module.
+ * @param[in]   nbits   Number of bits to dither (1 to 8). Ignored when
+ *                      disabling dithering.
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
  *
- * @param[in]   dev     Device handle
- * @param[in]   mod     Module to change
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_dither_disable(struct bladerf *dev, bladerf_module mod);
+int lms_dither_enable(struct bladerf *dev, bladerf_module mod,
+                      uint8_t nbits, bool enable);
 
 /**
  * Perform a soft reset of the LMS6002D device
  *
  * @param[in]   dev     Device handle
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_soft_reset(struct bladerf *dev);
+int lms_soft_reset(struct bladerf *dev);
 
 /**
  * Set the gain of the LNA
@@ -204,16 +206,20 @@ void lms_soft_reset(struct bladerf *dev);
  *
  * @param[in]   dev     Device handle
  * @param[in]   gain    Bypass, mid or max gain
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_lna_set_gain(struct bladerf *dev, bladerf_lna_gain gain);
+int lms_lna_set_gain(struct bladerf *dev, bladerf_lna_gain gain);
 
 /**
  * Get the gain of the LNA
  *
  * @param[in]   dev     Device handle
  * @param[out]  gain    Bypass, mid or max gain
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_lna_get_gain(struct bladerf *dev, bladerf_lna_gain *gain);
+int lms_lna_get_gain(struct bladerf *dev, bladerf_lna_gain *gain);
 
 /**
  * Select which LNA to enable
@@ -224,22 +230,20 @@ void lms_lna_get_gain(struct bladerf *dev, bladerf_lna_gain *gain);
  *
  * @param[in]   dev     Device handle
  * @param[in]   lna     LNA to enable
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_lna_select(struct bladerf *dev, lms_lna_t lna);
+int lms_lna_select(struct bladerf *dev, lms_lna_t lna);
 
 /**
- * Disable RXVGA1
+ * Enable or disable RXVGA1
  *
  * @param[in]   dev     Device handle
- */
-void lms_rxvga1_disable(struct bladerf *dev);
-
-/**
- * Enable RXVGA1
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
  *
- * @param[in]   dev     Device handle
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_rxvga1_enable(struct bladerf *dev);
+int lms_rxvga1_enable(struct bladerf *dev, bool enable);
 
 /**
  * Set the RXVGA1 mixer gain in weird units.
@@ -253,8 +257,10 @@ void lms_rxvga1_enable(struct bladerf *dev);
  *
  * @param[in]   dev     Device handle
  * @param[in]   gain    Gain value
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_rxvga1_set_gain(struct bladerf *dev, uint8_t gain);
+int lms_rxvga1_set_gain(struct bladerf *dev, uint8_t gain);
 
 /**
  * Get the RXVGA1 mixer gain in weird units.
@@ -266,15 +272,34 @@ void lms_rxvga1_set_gain(struct bladerf *dev, uint8_t gain);
  *
  * @param[in]   dev     Device handle
  * @param[out]  gain    Gain valye
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_rxvga1_get_gain(struct bladerf *dev, uint8_t *gain);
+int lms_rxvga1_get_gain(struct bladerf *dev, uint8_t *gain);
 
 /**
  * Disable RXVGA2
  *
  * @param[in]   dev     Device handle
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_rxvga2_disable(struct bladerf *dev);
+int lms_rxvga2_disable(struct bladerf *dev);
+
+/**
+ * Set the gain in dB and enable RXVGA2, or disable RXVGA2
+ *
+ * The range of gain values is from 0db to 60dB.
+ * Anything above 30dB is not recommended as a gain setting.
+ *
+ * @param[in]   dev     Device handle
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
+ * @param[in]   gain    Gain in dB (range: 0 to 60, >30 not recommended).
+ *                      Ignored when disabling RXVGA2.
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
+ */
+int lms_rxvga2_enable(struct bladerf *dev, bool enable, uint8_t gain);
 
 /**
  * Set the gain on RXVGA2 in dB.
@@ -284,27 +309,20 @@ void lms_rxvga2_disable(struct bladerf *dev);
  *
  * @param[in]   dev     Device handle
  * @param[in]   gain    Gain in dB (range: 0 to 60, >30 not recommended)
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_rxvga2_set_gain(struct bladerf *dev, uint8_t gain);
+int lms_rxvga2_set_gain(struct bladerf *dev, uint8_t gain);
 
 /**
  * Get the gain on RXVGA2 in dB.
  *
  * @param[in]   dev     Device handle
  * @param[out]  gain    Gain in dB (range: 0 to 60)
- */
-void lms_rxvga2_get_gain(struct bladerf *dev, uint8_t *gain);
-
-/**
- * Set the gain in dB and enable RXVGA2.
  *
- * The range of gain values is from 0db to 60dB.
- * Anything above 30dB is not recommended as a gain setting.
- *
- * @param[in]   dev     Device handle
- * @param[in]   gain    Gain in dB (range: 0 to 60, >30 not recommended)
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_rxvga2_enable(struct bladerf *dev, uint8_t gain);
+int lms_rxvga2_get_gain(struct bladerf *dev, uint8_t *gain);
 
 /**
  * Set the gain in dB of TXVGA2.
@@ -314,16 +332,20 @@ void lms_rxvga2_enable(struct bladerf *dev, uint8_t gain);
  *
  * @param[in]   dev     Device handle
  * @param[in]   gain    Gain in dB (range: 0 to 25)
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_txvga2_set_gain(struct bladerf *dev, uint8_t gain);
+int lms_txvga2_set_gain(struct bladerf *dev, uint8_t gain);
 
 /**
  * Get the gain in dB of TXVGA2.
  *
  * @param[in]   dev     Device handle
  * @param[out]  gain    Gain in dB (range: 0 to 25)
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_txvga2_get_gain(struct bladerf *dev, uint8_t *gain);
+int lms_txvga2_get_gain(struct bladerf *dev, uint8_t *gain);
 
 /**
  * Set the gain in dB of TXVGA1.
@@ -332,8 +354,10 @@ void lms_txvga2_get_gain(struct bladerf *dev, uint8_t *gain);
  *
  * @param[in]   dev     Device handle
  * @param[in]   gain    Gain in dB (range: -4 to -35)
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_txvga1_set_gain(struct bladerf *dev, int8_t gain);
+int lms_txvga1_set_gain(struct bladerf *dev, int8_t gain);
 
 /**
  * Get the gain in dB of TXVGA1.
@@ -342,159 +366,149 @@ void lms_txvga1_set_gain(struct bladerf *dev, int8_t gain);
  *
  * @param[in]   dev     Device handle
  * @param[in]   gain    Gain in dB (range: -4 to -35)
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_txvga1_get_gain(struct bladerf *dev, int8_t *gain);
+int lms_txvga1_get_gain(struct bladerf *dev, int8_t *gain);
 
 /**
- * Enable PA.
- * NOTE: PA_ALL is NOT valid for enabling, only for disabling.
+ * Enable or disable a PA
+ *
+ * @note PA_ALL is NOT valid for enabling, only for disabling.
  *
  * @param[in]   dev     Device handle
  * @param[in]   pa      PA to enable
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_pa_enable(struct bladerf *dev, lms_pa_t pa);
+int lms_pa_enable(struct bladerf *dev, lms_pa_t pa, bool enable);
 
 /**
- * Disable PA.
- * NOTE: PA_ALL is valid to disable all the PA's in the system
+ * Enable or disable  the peak detectors.
+ *
+ * This is used as a baseband feedback to the system during transmit for
+ * calibration purposes.
+ *
+ * @note You cannot actively receive RF when the peak detectors are enabled.
  *
  * @param[in]   dev     Device handle
- * @param[in]   pa      PA to disable
- */
-void lms_pa_disable(struct bladerf *dev, lms_pa_t pa);
-
-/**
- * Enable the peak detectors.  This is used as a baseband feedback
- * to the system during transmit for calibration purposes.
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
  *
- * NOTE: You cannot actively receive RF when the peak detectors are enabled.
- *
- * @param[in]   dev     Device handle
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_peakdetect_enable(struct bladerf *dev);
-
-/**
- * Disable the RF peak detectors.
- *
- * @param[in]   dev     Device handle
- */
-void lms_peakdetect_disable(struct bladerf *dev);
+int lms_peakdetect_enable(struct bladerf *dev, bool enable);
 
 /**
  * Enable or disable the RF front end.
  *
  * @param[in]   dev     Device handle
  * @param[in]   module  Module to enable or disable
- * @param[in]   enable  Enable or disable boolean flag
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable);
+int lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable);
 
 /**
  * Enable TX loopback
- * TODO: Does this need to be exposed like this?
  *
  * @param[in]   dev     Device handle
  * @param[in]   mode    Loopback mode (baseband or RF)
- */
-void lms_tx_loopback_enable(struct bladerf *dev, lms_txlb_t mode);
-
-/**
- * Disable TX loopback
- * TODO: Can this be more elegant? Does this need to be exposed like this?
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
  *
- * @param[in]   dev     Device handle
- * @param[in]   mode    Current loopback mode
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_tx_loopback_disable(struct bladerf *dev, lms_txlb_t mode);
+int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb_t mode, bool enable);
 
 /**
  * Enable loopback of the TX system to the RX system in the mode given.
  *
  * @param[in]   dev     Device handle
  * @param[in]   mode    Loopback mode
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode);
+int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode);
 
 /**
  * Figure out what loopback mode we're in (if any at all!)
  *
  * @param[in]   dev     Device handle
+ * @param[out]  mode    Current loopback mode
  *
  * @return the loopback mode the LMS6002D is currently in, if any.
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-bladerf_loopback lms_get_loopback_mode(struct bladerf *dev);
+int lms_get_loopback_mode(struct bladerf *dev, bladerf_loopback *mode);
 
 /**
  * Disable loopback mode.
- * NOTE: You must choose which LNA to hook up and what bandwidth you want as well.
+ *
+ * @note You must choose which LNA to hook up and what bandwidth you want as well.
  *
  * @param[in]   dev     Device handle
  * @param[in]   lna     LNA to enable
  * @param[in]   bw      Bandwidth to set
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_loopback_disable(struct bladerf *dev, lms_lna_t lna, lms_bw_t bw);
+int lms_loopback_disable(struct bladerf *dev, lms_lna_t lna, lms_bw_t bw);
 
 /**
  * Top level power down of the LMS6002D
  *
  * @param[in]   dev     Device handle
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_power_down(struct bladerf *dev);
+int lms_power_down(struct bladerf *dev);
 
 /**
- * Enable the PLL of a module.
+ * Enable or disable the PLL of a module.
  *
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module PLL to enable
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_pll_enable(struct bladerf *dev, bladerf_module mod);
+int lms_pll_enable(struct bladerf *dev, bladerf_module mod, bool enable);
 
 /**
- * Disable the PLL of a module.
+ * Enable or disable the RX subsystem
  *
  * @param[in]   dev     Device handle
- * @param[in]   mod     Module PLL to disable
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_pll_disable(struct bladerf *dev, bladerf_module mod);
+int lms_rx_enable(struct bladerf *dev, bool enable);
 
 /**
- * Enable the RX subsystem
+ * Enable or disable the TX subsystem
  *
  * @param[in]   dev     Device handle
- */
-void lms_rx_enable(struct bladerf *dev);
-
-/**
- * Disable the RX subsystem
+ * @param[in]   enable  Set to `true` to enable, `false` to disable
  *
- * @param[in]   dev     Device handle
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_rx_disable(struct bladerf *dev);
-
-/**
- * Enable the TX subsystem
- *
- * @param[in]   dev     Device handle
- */
-void lms_tx_enable(struct bladerf *dev);
-
-/**
- * Disable the TX subsystem
- *
- * @param[in]   dev     Device handle
- */
-void lms_tx_disable(struct bladerf *dev);
+int lms_tx_enable(struct bladerf *dev, bool enable);
 
 /**
  * Converts a frequency structure into the final frequency in Hz
  *
- * @param[in]   freq    Frequency structure to print out
- * @returns The closest frequency in Hz that it's tuned to
+ * @param[in]   f   Frequency structure to convert
+ * @returns  The closest frequency in Hz that `f` can be converted to
  */
 uint32_t lms_frequency_to_hz(struct lms_freq *f);
 
 /**
  * Pretty print a frequency structure
+ *
+ * @note This is intended only for debug purposes. The log level must
+ *       be set to DEBUG for this output to be made visible.
  *
  * @param[in]   freq    Frequency structure to print out
  */
@@ -506,9 +520,11 @@ void lms_print_frequency(struct lms_freq *freq);
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to change
  * @param[out]  freq    LMS frequency structure detailing VCO settings
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_get_frequency(struct bladerf *dev, bladerf_module mod,
-                       struct lms_freq *freq);
+int lms_get_frequency(struct bladerf *dev, bladerf_module mod,
+                      struct lms_freq *freq);
 
 /**
  * Set the frequency of a module in Hz
@@ -516,18 +532,22 @@ void lms_get_frequency(struct bladerf *dev, bladerf_module mod,
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to change
  * @param[in]   freq    Frequency in Hz to tune
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_set_frequency(struct bladerf *dev,
-                       bladerf_module mod, uint32_t freq);
+int lms_set_frequency(struct bladerf *dev,
+                      bladerf_module mod, uint32_t freq);
 
 /**
  * Read back every register from the LMS6002D device.
  *
- * NOTE: This is mainy used for debug purposes.
+ * @note This is intended only for debug purposes.
  *
  * @param[in]   dev     Device handle
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_dump_registers(struct bladerf *dev);
+int lms_dump_registers(struct bladerf *dev);
 
 /**
  * Calibrate the DC offset value for RX and TX modules for the
@@ -544,8 +564,10 @@ int lms_calibrate_dc(struct bladerf *dev, bladerf_cal_module module);
  * Initialize and calibrate the low pass filters
  *
  * @param[in]   dev     Device handle
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
  */
-void lms_lpf_init(struct bladerf *dev);
+int lms_lpf_init(struct bladerf *dev);
 
 /**
  * Initialize and configure the LMS6002D given the transceiver
