@@ -60,7 +60,7 @@ typedef enum {
     BW_2p5MHz,      /**< 2.5MHz bandwidth, 1.25MHz LPF */
     BW_1p75MHz,     /**< 1.75MHz bandwidth, 0.875MHz LPF */
     BW_1p5MHz,      /**< 1.5MHz bandwidth, 0.75MHz LPF */
-} lms_bw_t;
+} lms_bw;
 
 
 /**
@@ -71,7 +71,7 @@ typedef enum {
     LNA_1,      /**< Enable LNA1 (300MHz - 2.8GHz) */
     LNA_2,      /**< Enable LNA2 (1.5GHz - 3.8GHz) */
     LNA_3       /**< Enable LNA3 (300MHz - 3.0GHz) */
-} lms_lna_t;
+} lms_lna;
 
 
 /**
@@ -80,7 +80,7 @@ typedef enum {
 typedef enum {
     TXLB_BB,        /**< TX Baseband Loopback */
     TXLB_RF         /**< TX RF Loopback */
-} lms_txlb_t;
+} lms_txlb;
 
 /**
  * PA Selection
@@ -90,7 +90,7 @@ typedef enum {
     PA_1,           /**< PA1 Enable */
     PA_2,           /**< PA2 Enable */
     PA_ALL          /**< ALL PA's - used for DISABLE only.  Cannot be used for ENABLE */
-} lms_pa_t;
+} lms_pa;
 
 /**
  * LMS6002D Transceiver configuration
@@ -99,10 +99,10 @@ struct lms_xcvr_config {
     uint32_t tx_freq_hz;                /**< Transmit frequency in Hz */
     uint32_t rx_freq_hz;                /**< Receive frequency in Hz */
     bladerf_loopback loopback_mode;     /**< Loopback Mode */
-    lms_lna_t lna;                      /**< LNA Selection */
-    lms_pa_t pa;                        /**< PA Selection */
-    lms_bw_t tx_bw;                     /**< Transmit Bandwidth */
-    lms_bw_t rx_bw;                     /**< Receive Bandwidth */
+    lms_lna lna;                        /**< LNA Selection */
+    lms_pa pa;                          /**< PA Selection */
+    lms_bw tx_bw;                       /**< Transmit Bandwidth */
+    lms_bw rx_bw;                       /**< Receive Bandwidth */
 };
 
 /**
@@ -116,7 +116,7 @@ struct lms_xcvr_config {
  *
  * @return closest bandwidth
  */
-lms_bw_t lms_uint2bw(unsigned int req);
+lms_bw lms_uint2bw(unsigned int req);
 
 /**
  * Convert a bandwidth seletion to an unsigned int.
@@ -125,7 +125,7 @@ lms_bw_t lms_uint2bw(unsigned int req);
  *
  * @return bandwidth as an unsigned integer
  */
-unsigned int lms_bw2uint(lms_bw_t bw);
+unsigned int lms_bw2uint(lms_bw bw);
 
 /**
  * Select the bandwidth of the low-pass filter
@@ -136,7 +136,7 @@ unsigned int lms_bw2uint(lms_bw_t bw);
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_lpf_enable(struct bladerf *dev, bladerf_module mod, lms_bw_t bw);
+int lms_lpf_enable(struct bladerf *dev, bladerf_module mod, lms_bw bw);
 
 /**
  * Set the LPF mode
@@ -172,7 +172,7 @@ int lms_lpf_get_mode(struct bladerf *dev, bladerf_module mod,
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
 int lms_get_bandwidth(struct bladerf *dev, bladerf_module mod,
-                      lms_bw_t *bw);
+                      lms_bw *bw);
 
 /**
  * Enable dithering on PLL in the module to help reduce any fractional spurs
@@ -233,7 +233,7 @@ int lms_lna_get_gain(struct bladerf *dev, bladerf_lna_gain *gain);
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_lna_select(struct bladerf *dev, lms_lna_t lna);
+int lms_lna_select(struct bladerf *dev, lms_lna lna);
 
 /**
  * Enable or disable RXVGA1
@@ -382,7 +382,7 @@ int lms_txvga1_get_gain(struct bladerf *dev, int8_t *gain);
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_pa_enable(struct bladerf *dev, lms_pa_t pa, bool enable);
+int lms_pa_enable(struct bladerf *dev, lms_pa pa, bool enable);
 
 /**
  * Enable or disable  the peak detectors.
@@ -419,7 +419,7 @@ int lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable);
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb_t mode, bool enable);
+int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable);
 
 /**
  * Enable loopback of the TX system to the RX system in the mode given.
@@ -454,7 +454,7 @@ int lms_get_loopback_mode(struct bladerf *dev, bladerf_loopback *mode);
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_loopback_disable(struct bladerf *dev, lms_lna_t lna, lms_bw_t bw);
+int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw);
 
 /**
  * Top level power down of the LMS6002D

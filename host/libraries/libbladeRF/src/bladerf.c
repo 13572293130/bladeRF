@@ -430,7 +430,7 @@ int bladerf_set_bandwidth(struct bladerf *dev, bladerf_module module,
                           unsigned int *actual)
 {
     int status;
-    const lms_bw_t bw = lms_uint2bw(bandwidth);
+    const lms_bw bw = lms_uint2bw(bandwidth);
 
     status = lms_lpf_enable(dev, module, bw);
     if (status == 0) {
@@ -445,7 +445,7 @@ int bladerf_set_bandwidth(struct bladerf *dev, bladerf_module module,
 int bladerf_get_bandwidth(struct bladerf *dev, bladerf_module module,
                             unsigned int *bandwidth)
 {
-    lms_bw_t bw;
+    lms_bw bw;
     const int status = lms_get_bandwidth( dev, module, &bw);
 
     if (status == 0) {
@@ -475,8 +475,8 @@ int bladerf_select_band(struct bladerf *dev, bladerf_module module,
     int status;
     uint32_t gpio;
     uint32_t band = 0;
-    lms_lna_t lna;
-    lms_pa_t pa;
+    lms_lna lna;
+    lms_pa pa;
 
     if (frequency >= 1500000000) {
         band = 1; /* High Band selection */
