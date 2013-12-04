@@ -852,7 +852,7 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
 
             /* Choose the LNA (1 = LNA1, 2 = LNA2, 3 = LNA3) */
             status = bladerf_lms_write(dev, 0x08,
-                                       (mode - BLADERF_LB_RF_LNA_START));
+                                       (mode - (BLADERF_LB_RF_LNA1 - 1)));
 
             /* Set magical decode test registers bit */
             if (status == 0) {
@@ -860,8 +860,7 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             }
             break;
 
-        case BLADERF_LB_RF_LNA_START:
-        case BLADERF_LB_NONE:
+        default:
             status = BLADERF_ERR_INVAL;
             break;
     }
@@ -972,8 +971,7 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
             }
             break;
 
-        case BLADERF_LB_RF_LNA_START:
-        case BLADERF_LB_NONE:
+        default:
             status = BLADERF_ERR_INVAL;
             break;
     }

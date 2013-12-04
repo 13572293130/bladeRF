@@ -269,8 +269,7 @@ typedef enum {
     BLADERF_LB_BB_LPF = 0,   /**< Baseband loopback enters before RX low-pass filter input */
     BLADERF_LB_BB_VGA2,      /**< Baseband loopback enters before RX VGA2 input */
     BLADERF_LB_BB_OP,        /**< Baseband loopback enters before RX ADC input */
-    BLADERF_LB_RF_LNA_START, /**< Placeholder - DO NOT USE */
-    BLADERF_LB_RF_LNA1,      /**< RF loopback enters at LNA1 (300MHz - 2.8GHz)*/
+    BLADERF_LB_RF_LNA1 = 4,  /**< RF loopback enters at LNA1 (300MHz - 2.8GHz)*/
     BLADERF_LB_RF_LNA2,      /**< RF loopback enters at LNA2 (1.5GHz - 3.8GHz)*/
     BLADERF_LB_RF_LNA3,      /**< RF loopback enters at LNA3 (300MHz - 3.0GHz)*/
     BLADERF_LB_NONE          /**< Null loopback mode*/
