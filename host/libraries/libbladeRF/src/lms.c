@@ -642,11 +642,6 @@ int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable)
                     return status;
                 }
 
-                status = lms_peakdetect_enable(dev, true);
-                if (status != 0) {
-                    return status;
-                }
-
                 /* Make sure we're muxed over to the AUX mux */
                 status = bladerf_lms_read(dev, 0x45, &data);
                 if (status == 0) {
