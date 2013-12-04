@@ -327,6 +327,8 @@ int lms_soft_reset(struct bladerf *dev)
 
     int status = bladerf_lms_write(dev, 0x05, 0x12);
 
+    /* XXX Delay needed here when porting this to the NIOS? */
+
     if (status == 0) {
         status = bladerf_lms_write(dev, 0x05, 0x32);
     }
@@ -680,7 +682,12 @@ int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable)
                 data &= ~(1 << 0);
 
                 status = bladerf_lms_write(dev, 0x0b, data);
+
                 if (status == 0) {
+                    /* XXX Should this be a RMW on register 0x08, LBRFEN[3:0]
+                     * Should the LNAs be disabled for TXLB_RF enable?
+                     */
+
                     /* Power up the LNA's */
                     status = bladerf_lms_write(dev, 0x70, 0);
                 }
@@ -697,7 +704,7 @@ int lms_txvga2_set_gain(struct bladerf *dev, uint8_t gain)
     uint8_t data;
 
     if (gain > 25) {
-        log_info("%s: Clamping gain to 25 dB\n");
+        log_debug("%s: Clamping gain to 25 dB\n", __FUNCTION__);
         gain = 25;
     }
 
@@ -719,7 +726,7 @@ int lms_txvga2_get_gain(struct bladerf *dev, uint8_t *gain)
     status = bladerf_lms_read(dev, 0x45, &data);
 
     if (status == 0) {
-        *gain = (data>>3) & 0x1f;
+        *gain = (data >> 3) & 0x1f;
     }
 
     return status;
@@ -731,6 +738,7 @@ int lms_txvga1_set_gain(struct bladerf *dev, int8_t gain)
         return BLADERF_ERR_INVAL;
     }
 
+    /* Apply offset to convert gain to register table index */
     gain = (gain + 35);
 
     /* Since 0x41 is only VGA1GAIN, we don't need to RMW */
@@ -744,9 +752,11 @@ int lms_txvga1_get_gain(struct bladerf *dev, int8_t *gain)
 
     status = bladerf_lms_read(dev, 0x41, &data);
     if (status == 0) {
+        /* Clamp to max value */
         data = data & 0x1f;
-        *gain -= 35;
-        *gain += data;
+
+        /* Convert table index to value */
+        *gain = data - 35;
     }
 
     return status;
