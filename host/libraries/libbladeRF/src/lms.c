@@ -950,7 +950,8 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
                 return status;
             }
 
-            status = lms_rxvga2_enable(dev, 30/3, true);
+            /* XXX: Hardcoded gain? */
+            status = lms_rxvga2_enable(dev, true, 30/3);
             if (status == 0) {
                 status = lms_rxvga1_enable(dev, true);
             }
