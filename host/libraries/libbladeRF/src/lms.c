@@ -600,14 +600,14 @@ int lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable)
     return status;
 }
 
-int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable)
+int lms_loopback_path_enable(struct bladerf *dev, lms_lbp mode, bool enable)
 {
     int status = BLADERF_ERR_INVAL;
     uint8_t data;
 
     if (enable) {
         switch (mode) {
-            case TXLB_BB:
+            case LBP_BB:
                 status = bladerf_lms_read(dev, 0x46, &data);
                 if (status == 0) {
                     /* LOOPBBEN[1:0] Close base band loopback switch */
@@ -616,7 +616,7 @@ int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable)
                 }
                 break;
 
-            case TXLB_RF:
+            case LBP_RF:
                 /* Disable all the PA's first */
                 status = lms_pa_enable(dev, PA_ALL, false);
                 if (status != 0) {
@@ -655,7 +655,7 @@ int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable)
         }
     } else {
         switch (mode) {
-            case TXLB_BB:
+            case LBP_BB:
                 status = bladerf_lms_read(dev, 0x46, &data);
                 if (status == 0) {
                     /* LOOPBBEN[1:0] Open the base band loopback switch */
@@ -664,7 +664,7 @@ int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable)
                 }
                 break;
 
-            case TXLB_RF:
+            case LBP_RF:
                 /* Disable the AUX PA */
                 status = lms_pa_enable(dev, PA_AUX, false);
                 if (status != 0) {
@@ -773,7 +773,7 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             }
 
             /* Enable BB TX and RX loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_BB, true);
+            status = lms_loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 status = bladerf_lms_write(dev, 0x08, 1 << 6);
             }
@@ -788,7 +788,7 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             }
 
             /* Enable TX and RX loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_BB, true);
+            status = lms_loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 status = bladerf_lms_write(dev, 0x08, 1 << 5);
             }
@@ -813,7 +813,7 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             }
 
             /* Enable TX and RX loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_BB, true);
+            status = lms_loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 status = bladerf_lms_write(dev, 0x08, 1 << 4);
             }
@@ -829,7 +829,7 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             }
 
             /* Enable AUX PA, PD[0], and loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_RF, true);
+            status = lms_loopback_path_enable(dev, LBP_RF, true);
             if (status != 0) {
                 return status;
             }
@@ -921,7 +921,7 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
     switch (mode) {
         case BLADERF_LB_BB_LPF:
             /* Disable TX baseband loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_BB, true);
+            status = lms_loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 /* Enable RXVGA1 */
                 status = lms_rxvga1_enable(dev, true);
@@ -930,7 +930,7 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
 
         case BLADERF_LB_BB_VGA2:
             /* Disable TX baseband loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_BB, false);
+            status = lms_loopback_path_enable(dev, LBP_BB, false);
             if (status == 0) {
                 /* Enable RXLPF */
                 lms_lpf_enable(dev, BLADERF_MODULE_RX, bw);
@@ -939,7 +939,7 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
 
         case BLADERF_LB_BB_OP:
             /* Disable TX baseband loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_BB, false);
+            status = lms_loopback_path_enable(dev, LBP_BB, false);
             if (status != 0) {
                 return status;
             }
@@ -960,7 +960,7 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
         case BLADERF_LB_RF_LNA2:
         case BLADERF_LB_RF_LNA3:
             /* Disable TX RF loopback */
-            status = lms_tx_loopback_enable(dev, TXLB_RF, false);
+            status = lms_loopback_path_enable(dev, LBP_RF, false);
             if (status == 0) {
                 /* Enable selected LNA */
                 lms_lna_select(dev, lna);

@@ -75,12 +75,12 @@ typedef enum {
 
 
 /**
- * TX loopback modes
+ * Loopback paths
  */
 typedef enum {
-    TXLB_BB,        /**< TX Baseband Loopback */
-    TXLB_RF         /**< TX RF Loopback */
-} lms_txlb;
+    LBP_BB,        /**< Baseband loopback path */
+    LBP_RF         /**< RF Loopback path */
+} lms_lbp;
 
 /**
  * PA Selection
@@ -411,17 +411,6 @@ int lms_peakdetect_enable(struct bladerf *dev, bool enable);
 int lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable);
 
 /**
- * Enable TX loopback
- *
- * @param[in]   dev     Device handle
- * @param[in]   mode    Loopback mode (baseband or RF)
- * @param[in]   enable  Set to `true` to enable, `false` to disable
- *
- * @return 0 on success, BLADERF_ERR_* value on failure
- */
-int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable);
-
-/**
  * Enable loopback of the TX system to the RX system in the mode given.
  *
  * @param[in]   dev     Device handle
@@ -430,18 +419,6 @@ int lms_tx_loopback_enable(struct bladerf *dev, lms_txlb mode, bool enable);
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
 int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode);
-
-/**
- * Figure out what loopback mode we're in (if any at all!)
- *
- * @param[in]   dev     Device handle
- * @param[out]  mode    Current loopback mode
- *
- * @return the loopback mode the LMS6002D is currently in, if any.
- *
- * @return 0 on success, BLADERF_ERR_* value on failure
- */
-int lms_get_loopback_mode(struct bladerf *dev, bladerf_loopback *mode);
 
 /**
  * Disable loopback mode.
@@ -455,6 +432,19 @@ int lms_get_loopback_mode(struct bladerf *dev, bladerf_loopback *mode);
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
 int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw);
+
+
+/**
+ * Figure out what loopback mode we're in (if any at all!)
+ *
+ * @param[in]   dev     Device handle
+ * @param[out]  mode    Current loopback mode
+ *
+ * @return the loopback mode the LMS6002D is currently in, if any.
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
+ */
+int lms_get_loopback_mode(struct bladerf *dev, bladerf_loopback *mode);
 
 /**
  * Top level power down of the LMS6002D
@@ -559,15 +549,6 @@ int lms_dump_registers(struct bladerf *dev);
  * @return 0 on success, -1 on failure.
  */
 int lms_calibrate_dc(struct bladerf *dev, bladerf_cal_module module);
-
-/**
- * Initialize and calibrate the low pass filters
- *
- * @param[in]   dev     Device handle
- *
- * @return 0 on success, BLADERF_ERR_* value on failure
- */
-int lms_lpf_init(struct bladerf *dev);
 
 /**
  * Initialize and configure the LMS6002D given the transceiver
