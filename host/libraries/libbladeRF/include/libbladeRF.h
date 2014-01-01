@@ -512,8 +512,8 @@ int CALL_CONV bladerf_enable_module(struct bladerf *dev,
  * Apply specified loopback mode
  *
  * @param       dev     Device handle
- * @param       l       Loopback mode. Note that LB_NONE disables the use
- *                      of loopback functionality.
+ * @param       l       Loopback mode. Note that BLADERF_LB_NONE disables the
+ *                      use of loopback functionality.
  *
  * @return 0 on success, value from \ref RETCODES list on failure
  */

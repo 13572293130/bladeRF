@@ -128,15 +128,14 @@ lms_bw lms_uint2bw(unsigned int req);
 unsigned int lms_bw2uint(lms_bw bw);
 
 /**
- * Select the bandwidth of the low-pass filter
+ * Enable or disable the low-pass filter on the specified module
  *
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to change
- * @param[in]   bw      Low-pass bandwidth selection
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_lpf_enable(struct bladerf *dev, bladerf_module mod, lms_bw bw);
+int lms_lpf_enable(struct bladerf *dev, bladerf_module mod, bool enable);
 
 /**
  * Set the LPF mode
@@ -163,7 +162,18 @@ int lms_lpf_get_mode(struct bladerf *dev, bladerf_module mod,
                      bladerf_lpf_mode *mode);
 
 /**
- * Get the bandwidth for the selected module
+ * Set the bandwidth for the specified module
+ *
+ * @param[in]   dev     Device handle
+ * @param[in]   mod     Module to set bandwidth for
+ * @param[in]   bw      Desired bandwidth
+ *
+ * @return 0 on success, BLADERF_ERR_* value on failure
+ */
+int lms_set_bandwidth(struct bladerf *dev, bladerf_module mod, lms_bw bw);
+
+/**
+ * Get the bandwidth for the specified module
  *
  * @param[in]   dev     Device handle
  * @param[in]   mod     Module to read
@@ -171,8 +181,7 @@ int lms_lpf_get_mode(struct bladerf *dev, bladerf_module mod,
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_get_bandwidth(struct bladerf *dev, bladerf_module mod,
-                      lms_bw *bw);
+int lms_get_bandwidth(struct bladerf *dev, bladerf_module mod, lms_bw *bw);
 
 /**
  * Enable dithering on PLL in the module to help reduce any fractional spurs
@@ -278,15 +287,6 @@ int lms_rxvga1_set_gain(struct bladerf *dev, uint8_t gain);
 int lms_rxvga1_get_gain(struct bladerf *dev, uint8_t *gain);
 
 /**
- * Disable RXVGA2
- *
- * @param[in]   dev     Device handle
- *
- * @return 0 on success, BLADERF_ERR_* value on failure
- */
-int lms_rxvga2_disable(struct bladerf *dev);
-
-/**
  * Set the gain in dB and enable RXVGA2, or disable RXVGA2
  *
  * The range of gain values is from 0db to 60dB.
@@ -294,12 +294,10 @@ int lms_rxvga2_disable(struct bladerf *dev);
  *
  * @param[in]   dev     Device handle
  * @param[in]   enable  Set to `true` to enable, `false` to disable
- * @param[in]   gain    Gain in dB (range: 0 to 60, >30 not recommended).
- *                      Ignored when disabling RXVGA2.
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_rxvga2_enable(struct bladerf *dev, bool enable, uint8_t gain);
+int lms_rxvga2_enable(struct bladerf *dev, bool enable);
 
 /**
  * Set the gain on RXVGA2 in dB.
@@ -411,36 +409,23 @@ int lms_peakdetect_enable(struct bladerf *dev, bool enable);
 int lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable);
 
 /**
- * Enable loopback of the TX system to the RX system in the mode given.
+ * Configure TX -> RX loopback mode
  *
  * @param[in]   dev     Device handle
- * @param[in]   mode    Loopback mode
+ * @param[in]   mode    Loopback mode. USE BLADERF_LB_NONE to disable
+ *                      loopback functionality.
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode);
-
-/**
- * Disable loopback mode.
- *
- * @note You must choose which LNA to hook up and what bandwidth you want as well.
- *
- * @param[in]   dev     Device handle
- * @param[in]   lna     LNA to enable
- * @param[in]   bw      Bandwidth to set
- *
- * @return 0 on success, BLADERF_ERR_* value on failure
- */
-int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw);
+int lms_loopback(struct bladerf *dev, bladerf_loopback mode);
 
 
 /**
- * Figure out what loopback mode we're in (if any at all!)
+ * Figure out what loopback mode we're in.
  *
  * @param[in]   dev     Device handle
- * @param[out]  mode    Current loopback mode
- *
- * @return the loopback mode the LMS6002D is currently in, if any.
+ * @param[out]  mode    Current loopback mode, or BLADERF_LB_NONE if
+ *                      loopback is not enabled.
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
