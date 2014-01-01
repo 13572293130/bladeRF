@@ -71,51 +71,61 @@ static const unsigned int uint_bandwidths[] = {
     kHz(1500)
 };
 
-/* Frequency Range table */
-struct freq_range {
+#define FREQ_RANGE(low_, high_, value_) \
+{ \
+    FIELD_INIT(.low, low_), \
+    FIELD_INIT(.high,  high_), \
+    FIELD_INIT(.value, value_), \
+}
+
+/* Frequency Range table. Corresponds to the LMS FREQSEL table */
+const struct freq_range {
     uint32_t    low;
     uint32_t    high;
     uint8_t     value;
-};
-
-const struct freq_range bands[] = {
-    { FIELD_INIT(.low, 232500000),   FIELD_INIT(.high, 285625000),   FIELD_INIT(.value, 0x27) },
-    { FIELD_INIT(.low, 285625000),   FIELD_INIT(.high, 336875000),   FIELD_INIT(.value, 0x2f) },
-    { FIELD_INIT(.low, 336875000),   FIELD_INIT(.high, 405000000),   FIELD_INIT(.value, 0x37) },
-    { FIELD_INIT(.low, 405000000),   FIELD_INIT(.high, 465000000),   FIELD_INIT(.value, 0x3f) },
-    { FIELD_INIT(.low, 465000000),   FIELD_INIT(.high, 571250000),   FIELD_INIT(.value, 0x26) },
-    { FIELD_INIT(.low, 571250000),   FIELD_INIT(.high, 673750000),   FIELD_INIT(.value, 0x2e) },
-    { FIELD_INIT(.low, 673750000),   FIELD_INIT(.high, 810000000),   FIELD_INIT(.value, 0x36) },
-    { FIELD_INIT(.low, 810000000),   FIELD_INIT(.high, 930000000),   FIELD_INIT(.value, 0x3e) },
-    { FIELD_INIT(.low, 930000000),   FIELD_INIT(.high, 1142500000),  FIELD_INIT(.value, 0x25) },
-    { FIELD_INIT(.low, 1142500000),  FIELD_INIT(.high, 1347500000),  FIELD_INIT(.value, 0x2d) },
-    { FIELD_INIT(.low, 1347500000),  FIELD_INIT(.high, 1620000000),  FIELD_INIT(.value, 0x35) },
-    { FIELD_INIT(.low, 1620000000),  FIELD_INIT(.high, 1860000000),  FIELD_INIT(.value, 0x3d) },
-    { FIELD_INIT(.low, 1860000000u), FIELD_INIT(.high, 2285000000u), FIELD_INIT(.value, 0x24) },
-    { FIELD_INIT(.low, 2285000000u), FIELD_INIT(.high, 2695000000u), FIELD_INIT(.value, 0x2c) },
-    { FIELD_INIT(.low, 2695000000u), FIELD_INIT(.high, 3240000000u), FIELD_INIT(.value, 0x34) },
-    { FIELD_INIT(.low, 3240000000u), FIELD_INIT(.high, 3900000000u), FIELD_INIT(.value, 0x3c) }
+} bands[] = {
+    FREQ_RANGE(232500000,   285625000,   0x27),
+    FREQ_RANGE(285625000,   336875000,   0x2f),
+    FREQ_RANGE(336875000,   405000000,   0x37),
+    FREQ_RANGE(405000000,   465000000,   0x3f),
+    FREQ_RANGE(465000000,   571250000,   0x26),
+    FREQ_RANGE(571250000,   673750000,   0x2e),
+    FREQ_RANGE(673750000,   810000000,   0x36),
+    FREQ_RANGE(810000000,   930000000,   0x3e),
+    FREQ_RANGE(930000000,   1142500000,  0x25),
+    FREQ_RANGE(1142500000,  1347500000,  0x2d),
+    FREQ_RANGE(1347500000,  1620000000,  0x35),
+    FREQ_RANGE(1620000000,  1860000000,  0x3d),
+    FREQ_RANGE(1860000000u, 2285000000u, 0x24),
+    FREQ_RANGE(2285000000u, 2695000000u, 0x2c),
+    FREQ_RANGE(2695000000u, 3240000000u, 0x34),
+    FREQ_RANGE(3240000000u, 3720000000u, 0x3c),
 };
 
 
 const uint8_t lms_reg_dumpset[] = {
     /* Top level configuration */
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0E, 0x0F,
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
+    0x0E, 0x0F,
 
     /* TX PLL Configuration */
-    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B,
+    0x1C, 0x1D, 0x1E, 0x1F,
 
     /* RX PLL Configuration */
-    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F,
+    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B,
+    0x2C, 0x2D, 0x2E, 0x2F,
 
     /* TX LPF Modules Configuration */
     0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36,
 
     /* TX RF Modules Configuration */
-    0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
+    0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B,
+    0x4C, 0x4D, 0x4E, 0x4F,
 
     /* RX LPF, ADC, and DAC Modules Configuration */
-    0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F,
+    0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B,
+    0x5C, 0x5D, 0x5E, 0x5F,
 
     /* RX VGA2 Configuration */
     0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68,

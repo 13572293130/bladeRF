@@ -108,9 +108,9 @@ struct lms_xcvr_config {
 /**
  * Convert an integer to a bandwidth selection.
  * If the actual bandwidth is not available, the closest
- * bandwidth greater than the requested bandwidth is selected
- * unless the requested bandwidth is greater than the maximum
- * allowable bandwidth.  Sorry. :(
+ * bandwidth greater than the requested bandwidth is selected.
+ * If the provide value is greater than the maximum available bandwidth, the
+ * maximum available bandiwidth is returned.
  *
  * @param[in]   req     Requested bandwidth
  *
