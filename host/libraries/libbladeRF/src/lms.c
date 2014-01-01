@@ -766,6 +766,8 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
     switch(mode)
     {
         case BLADERF_LB_BB_LPF:
+            log_debug("Enabling LB BB LPF\n");
+
             /* Disable RXVGA1 first */
             status = lms_rxvga1_enable(dev, false);
             if (status != 0) {
@@ -780,6 +782,8 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             break;
 
         case BLADERF_LB_BB_VGA2:
+            log_debug("Enabling LB BB VGA2\n");
+
             /* Disable RXLPF first */
             status = lms_lpf_set_mode(dev, BLADERF_MODULE_RX,
                                       BLADERF_LPF_DISABLED);
@@ -795,6 +799,8 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             break;
 
         case BLADERF_LB_BB_OP:
+            log_debug("Enabling LB BB OP\n");
+
             /* Disable RXLPF, RXVGA2, and RXVGA1 */
             status = lms_rxvga1_enable(dev, false);
             if (status != 0) {
@@ -822,6 +828,9 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
         case BLADERF_LB_RF_LNA1:
         case BLADERF_LB_RF_LNA2:
         case BLADERF_LB_RF_LNA3:
+            log_debug("Enabling LB RF LNA%d\n",
+                      mode - (BLADERF_LB_RF_LNA1 - 1));
+
             /* Disable all LNAs */
             status = lms_lna_select(dev, LNA_NONE);
             if (status != 0) {
@@ -857,6 +866,7 @@ int lms_loopback_enable(struct bladerf *dev, bladerf_loopback mode)
             break;
 
         default:
+            log_debug("Invalid LB\n");
             status = BLADERF_ERR_INVAL;
             break;
     }
@@ -919,6 +929,8 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
 
 
     switch (mode) {
+        log_debug("Disabling LB BB LPF\n");
+
         case BLADERF_LB_BB_LPF:
             /* Disable TX baseband loopback */
             status = lms_loopback_path_enable(dev, LBP_BB, true);
@@ -929,6 +941,8 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
             break;
 
         case BLADERF_LB_BB_VGA2:
+            log_debug("Disabling LB BB VGA2\n");
+
             /* Disable TX baseband loopback */
             status = lms_loopback_path_enable(dev, LBP_BB, false);
             if (status == 0) {
@@ -938,6 +952,8 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
             break;
 
         case BLADERF_LB_BB_OP:
+            log_debug("Disabling LB BB OP\n");
+
             /* Disable TX baseband loopback */
             status = lms_loopback_path_enable(dev, LBP_BB, false);
             if (status != 0) {
@@ -960,6 +976,9 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
         case BLADERF_LB_RF_LNA1:
         case BLADERF_LB_RF_LNA2:
         case BLADERF_LB_RF_LNA3:
+            log_debug("Disabling LB RF LNA%d\n",
+                        mode - (BLADERF_LB_RF_LNA1 - 1));
+
             /* Disable TX RF loopback */
             status = lms_loopback_path_enable(dev, LBP_RF, false);
             if (status == 0) {
@@ -969,6 +988,7 @@ int lms_loopback_disable(struct bladerf *dev, lms_lna lna, lms_bw bw)
             break;
 
         default:
+            log_debug("Invalid LB\n");
             status = BLADERF_ERR_INVAL;
             break;
     }
