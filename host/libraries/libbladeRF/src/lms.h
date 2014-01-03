@@ -417,7 +417,7 @@ int lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable);
  *
  * @return 0 on success, BLADERF_ERR_* value on failure
  */
-int lms_loopback(struct bladerf *dev, bladerf_loopback mode);
+int lms_set_loopback_mode(struct bladerf *dev, bladerf_loopback mode);
 
 
 /**

@@ -134,15 +134,12 @@ const uint8_t lms_reg_dumpset[] = {
     0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C
 };
 
-/* When enabling an LPF, we must select both the module
- * and the filter bandwidth */
 int lms_lpf_enable(struct bladerf *dev, bladerf_module mod, bool enable)
 {
     int status;
     uint8_t data;
     const uint8_t reg = (mod == BLADERF_MODULE_RX) ? 0x54 : 0x34;
 
-    /* Check to see which bandwidth we have selected */
     status = bladerf_lms_read(dev, reg, &data);
     if (status != 0) {
         return status;
@@ -625,7 +622,8 @@ int lms_enable_rffe(struct bladerf *dev, bladerf_module module, bool enable)
     return status;
 }
 
-int lms_loopback_path_enable(struct bladerf *dev, lms_lbp mode, bool enable)
+/* Enable/disable loopback nets for specified mode */
+static int loopback_path_enable(struct bladerf *dev, lms_lbp mode, bool enable)
 {
     int status = BLADERF_ERR_INVAL;
     uint8_t data;
@@ -634,20 +632,35 @@ int lms_loopback_path_enable(struct bladerf *dev, lms_lbp mode, bool enable)
         switch (mode) {
             case LBP_BB:
                 status = bladerf_lms_read(dev, 0x46, &data);
-                if (status == 0) {
-                    /* LOOPBBEN[1:0] Close base band loopback switch */
-                    data |= (3 << 2);
-                    status = bladerf_lms_write(dev, 0x46, data);
-                }
-                break;
-
-            case LBP_RF:
-                /* Disable all the PA's first */
-                status = lms_pa_enable(dev, PA_ALL, false);
                 if (status != 0) {
                     return status;
                 }
 
+                /* LOOPBBEN[1:0]:
+                 *  00  - All Baseband loops opened (default)
+                 *  01 - TX loopback path connected from TXLPF output
+                 *  10  - TX loopback path connected from TXVGA1 output
+                 *  11  - TX loopback path connected from Env/peak detect output
+                 */
+                data &= ~(3 << 2);
+                data |= (1 << 2);
+                status = bladerf_lms_write(dev, 0x46, data);
+                if (status != 0) {
+                    return status;
+                }
+
+                status = bladerf_lms_read(dev, 0x08, &data);
+                if (status != 0) {
+                    return status;
+                }
+
+                /* Close LBEN_LPFIN switch */
+                data |= (1 << 6);
+
+                status = bladerf_lms_write(dev, 0x08, data);
+                break;
+
+            case LBP_RF:
                 /* Power up the RF loopback switch (PD[0]) */
                 status = bladerf_lms_read(dev, 0x0b, &data);
                 if (status != 0) {
@@ -681,9 +694,9 @@ int lms_loopback_path_enable(struct bladerf *dev, lms_lbp mode, bool enable)
     } else {
         switch (mode) {
             case LBP_BB:
+                /* LOOPBBEN[1:0] Open the base band loopback switch */
                 status = bladerf_lms_read(dev, 0x46, &data);
                 if (status == 0) {
-                    /* LOOPBBEN[1:0] Open the base band loopback switch */
                     data &= ~(3 << 2);
                     status = bladerf_lms_write(dev, 0x46, data);
                 }
@@ -805,7 +818,7 @@ static int disable_loopback(struct bladerf *dev)
 
         case BLADERF_LB_BB_LPF:
             /* Disable TX baseband loopback */
-            status = lms_loopback_path_enable(dev, LBP_BB, true);
+            status = loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 /* Enable RXVGA1 */
                 status = lms_rxvga1_enable(dev, true);
@@ -816,7 +829,7 @@ static int disable_loopback(struct bladerf *dev)
             log_debug("Disabling LB BB VGA2\n");
 
             /* Disable TX baseband loopback */
-            status = lms_loopback_path_enable(dev, LBP_BB, false);
+            status = loopback_path_enable(dev, LBP_BB, false);
             if (status == 0) {
                 /* Enable RXLPF */
                 lms_lpf_enable(dev, BLADERF_MODULE_RX, true);
@@ -827,7 +840,7 @@ static int disable_loopback(struct bladerf *dev)
             log_debug("Disabling LB BB OP\n");
 
             /* Disable TX baseband loopback */
-            status = lms_loopback_path_enable(dev, LBP_BB, false);
+            status = loopback_path_enable(dev, LBP_BB, false);
             if (status != 0) {
                 return status;
             }
@@ -851,7 +864,7 @@ static int disable_loopback(struct bladerf *dev)
                         mode - (BLADERF_LB_RF_LNA1 - 1));
 
             /* Disable TX RF loopback */
-            status = lms_loopback_path_enable(dev, LBP_RF, false);
+            status = loopback_path_enable(dev, LBP_RF, false);
             break;
 
         case BLADERF_LB_NONE:
@@ -869,13 +882,35 @@ static int disable_loopback(struct bladerf *dev)
 }
 
 
-int lms_loopback(struct bladerf *dev, bladerf_loopback mode)
+int lms_set_loopback_mode(struct bladerf *dev, bladerf_loopback mode)
 {
     int status;
     uint8_t data;
 
-    switch(mode)
-    {
+    /* Disable all PAs while entering loopback mode or making changes */
+    status = lms_pa_enable(dev, PA_ALL, false);
+    if (status != 0) {
+        return status;
+    }
+
+    /* XXX Required to disable with LNAs -- neccessary here? */
+    status = bladerf_lms_read(dev, 0x70, &data);
+    if (status != 0) {
+        return status;
+    }
+
+    if (mode != BLADERF_LB_NONE) {
+        data |= (1 << 1);
+    } else {
+        data &= ~(1 << 1);
+    }
+
+    status = bladerf_lms_write(dev, 0x70, data);
+    if (status != 0) {
+        return status;
+    }
+
+    switch(mode) {
         case BLADERF_LB_BB_LPF:
             log_debug("Enabling LB BB LPF\n");
 
@@ -885,8 +920,15 @@ int lms_loopback(struct bladerf *dev, bladerf_loopback mode)
                 return status;
             }
 
-            /* Enable BB TX and RX loopback */
-            status = lms_loopback_path_enable(dev, LBP_BB, true);
+            /* Enable RXLPF and ensure it's not in bypass*/
+            status = lms_lpf_set_mode(dev, BLADERF_MODULE_RX,
+                                     BLADERF_LPF_NORMAL);
+            if (status != 0) {
+                return status;
+            }
+
+            /* Enable BB TX and RX loopback nets */
+            status = loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 status = bladerf_lms_write(dev, 0x08, 1 << 6);
             }
@@ -903,7 +945,7 @@ int lms_loopback(struct bladerf *dev, bladerf_loopback mode)
             }
 
             /* Enable TX and RX loopback */
-            status = lms_loopback_path_enable(dev, LBP_BB, true);
+            status = loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 status = bladerf_lms_write(dev, 0x08, 1 << 5);
             }
@@ -930,7 +972,7 @@ int lms_loopback(struct bladerf *dev, bladerf_loopback mode)
             }
 
             /* Enable TX and RX loopback */
-            status = lms_loopback_path_enable(dev, LBP_BB, true);
+            status = loopback_path_enable(dev, LBP_BB, true);
             if (status == 0) {
                 status = bladerf_lms_write(dev, 0x08, 1 << 4);
             }
@@ -949,7 +991,7 @@ int lms_loopback(struct bladerf *dev, bladerf_loopback mode)
             }
 
             /* Enable AUX PA, PD[0], and loopback */
-            status = lms_loopback_path_enable(dev, LBP_RF, true);
+            status = loopback_path_enable(dev, LBP_RF, true);
             if (status != 0) {
                 return status;
             }
@@ -976,11 +1018,17 @@ int lms_loopback(struct bladerf *dev, bladerf_loopback mode)
             }
             break;
 
+        case BLADERF_LB_NONE:
+            status = 0;
+            break;
+
         default:
             log_debug("Invalid LB\n");
             status = BLADERF_ERR_INVAL;
             break;
     }
+
+    /* lms_dump_registers(dev); */
 
     return status;
 }
@@ -1458,7 +1506,7 @@ int lms_dump_registers(struct bladerf *dev)
             log_debug("Failed to read LMS @ 0x%02x\n", lms_reg_dumpset[i]);
             return status;
         } else {
-            log_debug("addr: %x data: %x\n", lms_reg_dumpset[i], data);
+            log_debug("LMS[0x%02x] = 0x%02x\n", lms_reg_dumpset[i], data);
         }
     }
 
@@ -1550,7 +1598,7 @@ int lms_config_init(struct bladerf *dev, struct lms_xcvr_config *config)
     if (config->loopback_mode == BLADERF_LB_NONE) {
         status = disable_loopback(dev);
     } else {
-        status = lms_loopback(dev, config->loopback_mode);
+        status = lms_set_loopback_mode(dev, config->loopback_mode);
     }
 
     return status;

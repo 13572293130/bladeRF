@@ -189,7 +189,7 @@ int bladerf_enable_module(struct bladerf *dev,
 
 int bladerf_set_loopback(struct bladerf *dev, bladerf_loopback l)
 {
-    return lms_loopback(dev, l);
+    return lms_set_loopback_mode(dev, l);
 }
 
 
